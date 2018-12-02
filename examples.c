@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     stat_object_add(ctr, difference);
   }
   /* How to print the statistics collected */
-  StatResult r = (StatResult)malloc(sizeof(StatResult));
+  StatResult r = (StatResult)malloc(sizeof(sStatResult));
   stat_obj_value(ctr,r);
   printf("time to yield: avg: %10.4f min: %10.4f max: %10.4f stddev: %10.4f\n",
          r->mean, r->min, r->max, r->stddev);
