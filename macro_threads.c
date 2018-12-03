@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -27,7 +28,12 @@ int main(){
   for (int i = 0; i < NUMTASKS; i++) {
     int rcode;
     if ((rcode = pthread_create(&thr[i], NULL, workerthread, NULL))) {
-      fprintf(stderr, "Error in pthread_create: %d\n", rcode);
+      if (rcode == EAGAIN){
+        // insufficient resources, just keep slamming it until we finish our work
+        i--;
+        continue;
+      }
+      fprintf(stderr, "Error in pthread_create at thread num %d: %d\n", i,rcode);
       exit(EXIT_FAILURE);
     }
   }
