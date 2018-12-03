@@ -23,8 +23,10 @@ void * workerthread(void * tid){
 
 int main(){
   pthread_t thr[NUMTASKS];
+  struct timespec before, after;
   
   printf("running fib(%d) %d times\n",FIBNUM,NUMTASKS);
+  clock_gettime(CLOCK_REALTIME, &before);
   for (int i = 0; i < NUMTASKS; i++) {
     int rcode;
     if ((rcode = pthread_create(&thr[i], NULL, workerthread, NULL))) {
@@ -41,5 +43,6 @@ int main(){
   for (int i = 0; i < NUMTASKS; i++) {
     pthread_join(thr[i], NULL);
   }
+  clock_gettime(CLOCK_REALTIME, &after);
   return 0;
 }
