@@ -11,8 +11,18 @@
 #define N_REPS 50000
 #define NUM_SPECS 3
 
+struct timespec before;
+struct timespec after;
+double difference;
+
 void *childfunc(void *offset)
 {
+  return NULL;
+}
+
+void *childfunc2(void *offset)
+{
+  clock_gettime(CLOCK_REALTIME,&after);
   return NULL;
 }
 
@@ -28,27 +38,91 @@ void * malloc_shared(size_t size){
 }
 
 void test_threads(){
+  StatObject ctr = NewStatObject();
+  StatObject ctr2 = NewStatObject();
   pthread_t child;
   for (long i = 0; i < N_REPS; i++)
   {
-    pthread_create(&child, NULL, childfunc, (void *)i);
+    int result;
+    clock_gettime(CLOCK_REALTIME,&before);
+    result = pthread_create(&child, NULL, childfunc, (void *)i);
+    clock_gettime(CLOCK_REALTIME,&after);
+    if(result == 0){
+      difference = (after.tv_sec * NANOSECONDS_PER_SECOND + after.tv_nsec) - (before.tv_sec * NANOSECONDS_PER_SECOND + before.tv_nsec);
+      stat_object_add(ctr, difference);
+    }
     pthread_join(child, NULL);
   }
+  
+  for (long i = 0; i < N_REPS; i++)
+  {
+    int result;
+    clock_gettime(CLOCK_REALTIME,&before);
+    result = pthread_create(&child, NULL, childfunc2, (void *)i);
+    if(result == 0){
+    }
+    pthread_join(child, NULL);
+    difference = (after.tv_sec * NANOSECONDS_PER_SECOND + after.tv_nsec) - (before.tv_sec * NANOSECONDS_PER_SECOND + before.tv_nsec);
+    stat_object_add(ctr2, difference);
+  }
+  
+  StatResult r = (StatResult)malloc(sizeof(StatResult));
+  stat_obj_value(ctr,r);
+  printf("time to spawn a new thread: avg: %10.4f min: %10.4f max: %10.4f stddev: %10.4f\n",
+         r->mean, r->min, r->max, r->stddev);
+  stat_obj_value(ctr2,r);
+  printf("time to start running a new thread: avg: %10.4f min: %10.4f max: %10.4f stddev: %10.4f\n",
+         r->mean, r->min, r->max, r->stddev);
+  free(r);
 }
 
 void test_processes(){
   int wpid, status, retval;
+  StatObject ctr = NewStatObject();
+  StatObject ctr2 = NewStatObject();
+  double difference2;
+  struct timespec* after2 = malloc_shared(sizeof(struct timespec));
 
   for (int i = 0; i < N_REPS; i++) {
+    
+    clock_gettime(CLOCK_REALTIME,&before);
     retval = fork();
+    clock_gettime(CLOCK_REALTIME,&after);
     if(retval == 0){
       exit(0);
     }
     else{
-      // do nothing
+      difference = (after.tv_sec * NANOSECONDS_PER_SECOND + after.tv_nsec) - (before.tv_sec * NANOSECONDS_PER_SECOND + before.tv_nsec);
+      stat_object_add(ctr, difference);
     }
     wpid = wait(&status);
   }
+  
+  for (int i = 0; i < N_REPS; i++) {
+    
+    clock_gettime(CLOCK_REALTIME,&before);
+    retval = fork();
+    clock_gettime(CLOCK_REALTIME,&after);
+    if(retval == 0){
+      *after2 = after;
+      exit(0);
+    }
+    else{
+      
+    }
+    wpid = wait(&status);
+    difference2 = (after2->tv_sec * NANOSECONDS_PER_SECOND + after2->tv_nsec) - (before.tv_sec * NANOSECONDS_PER_SECOND + before.tv_nsec);
+    stat_object_add(ctr2, difference2);
+  }
+  
+  StatResult r = (StatResult)malloc(sizeof(StatResult));
+  stat_obj_value(ctr,r);
+  printf("time to spawn a new process: avg: %10.4f min: %10.4f max: %10.4f stddev: %10.4f\n",
+         r->mean, r->min, r->max, r->stddev);
+  stat_obj_value(ctr2,r);
+  printf("time to start running a new process: avg: %10.4f min: %10.4f max: %10.4f stddev: %10.4f\n",
+         r->mean, r->min, r->max, r->stddev);
+  free(r);
   // wait for all worker processes to finish
   while ((wpid = wait(&status)) > 0);
 }
