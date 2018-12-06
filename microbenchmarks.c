@@ -66,7 +66,7 @@ void test_threads(){
     stat_object_add(ctr2, difference);
   }
   
-  StatResult r = (StatResult)malloc(sizeof(StatResult));
+  StatResult r = (StatResult)malloc(sizeof(sStatResult));
   stat_obj_value(ctr,r);
   printf("time to spawn a new thread: avg: %10.4f min: %10.4f max: %10.4f stddev: %10.4f\n",
          r->mean, r->min, r->max, r->stddev);
