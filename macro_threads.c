@@ -8,6 +8,12 @@
 #define NANOSECONDS_PER_SECOND 1E9
 #define FIBNUM 26
 
+
+
+
+ struct timespec beforeTotal, afterTotal;
+ 
+
 int fib(int x) {
   if (x == 0) 
     return 0;
@@ -17,16 +23,19 @@ int fib(int x) {
 }
 
 void * workerthread(void * tid){
+
   fib(FIBNUM);
   return NULL;
 }
 
+
+
 int main(){
   pthread_t thr[NUMTASKS];
-  struct timespec before, after;
+  double difference;
   
   printf("running fib(%d) %d times\n",FIBNUM,NUMTASKS);
-  clock_gettime(CLOCK_REALTIME, &before);
+  clock_gettime(CLOCK_REALTIME, &beforeTotal);
   for (int i = 0; i < NUMTASKS; i++) {
     int rcode;
     if ((rcode = pthread_create(&thr[i], NULL, workerthread, NULL))) {
@@ -43,6 +52,10 @@ int main(){
   for (int i = 0; i < NUMTASKS; i++) {
     pthread_join(thr[i], NULL);
   }
-  clock_gettime(CLOCK_REALTIME, &after);
+  clock_gettime(CLOCK_REALTIME, &afterTotal);
+  difference = (afterTotal.tv_sec * NANOSECONDS_PER_SECOND + afterTotal.tv_nsec) - (beforeTotal.tv_sec * NANOSECONDS_PER_SECOND + beforeTotal.tv_nsec);
+  printf("Total Time elapsed: %10.4f\n",difference);
+
+  
   return 0;
 }

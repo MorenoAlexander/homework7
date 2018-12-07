@@ -70,7 +70,7 @@ int main(int argc, char ** argv){
       if (workers[i].input == -1){
         if (workers[i].output != -1){
           // If you cared about output, you would do something with it here, e.g.:
-          // printf("worker %d finished task with result %ld\n",i,workers[i].output);
+          printf("worker %d finished task with result %ld\n",i,workers[i].output);
         }
         workers[i].input = FIBNUM;
         sem_post(&workers[i].done);
