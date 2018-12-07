@@ -43,6 +43,11 @@ void * workerthread(void * tid){
 
 }
 
+
+struct timespec beforeTotal;
+struct timespec afterTotal;
+
+
 int main(int argc, char ** argv){
   // If you want to use a different number of workers, specify it as the first
   // argument on the command line
@@ -63,6 +68,7 @@ int main(int argc, char ** argv){
   }
 
   printf("Running fib(%d) %d times with %d worker threads\n",FIBNUM,NUMTASKS,numworkers);
+  clock_gettime(CLOCK_REALTIME,&beforeTotal); //get time before we start
   for (int j=0; j<NUMTASKS; j++){
     sem_wait(&available);
     pthread_mutex_lock(&protect_state);
@@ -70,7 +76,7 @@ int main(int argc, char ** argv){
       if (workers[i].input == -1){
         if (workers[i].output != -1){
           // If you cared about output, you would do something with it here, e.g.:
-          printf("worker %d finished task with result %ld\n",i,workers[i].output);
+          //printf("worker %d finished task with result %ld\n",i,workers[i].output);
         }
         workers[i].input = FIBNUM;
         sem_post(&workers[i].done);
@@ -94,5 +100,9 @@ int main(int argc, char ** argv){
     }
     pthread_mutex_unlock(&protect_state);
   }
+  clock_gettime(CLOCK_REALTIME,&afterTotal); //time after we're done
+
+  double difference  = (afterTotal.tv_sec * NANOSECONDS_PER_SECOND + afterTotal.tv_nsec) - (beforeTotal.tv_sec * NANOSECONDS_PER_SECOND + beforeTotal.tv_nsec);
+  printf("Total elapsed time for threadpool: %10.4f\n", difference);
   return 0;
 }

@@ -65,13 +65,14 @@ int main(){
   }
   // wait for all worker processes to finish
   while ((wpid = wait(&status)) > 0);
+  clock_gettime(CLOCK_REALTIME, &afterTotal);
 
   StatResult r = (StatResult)malloc(sizeof(sStatResult));
   stat_obj_value(procSpawn, r);
   printf("time to spawn a process: avg: %10.4f min: %10.4f max: %10.4f stddev: %10.4f\n",
          r->mean, r->min, r->max, r->stddev);
 
-  clock_gettime(CLOCK_REALTIME, &afterTotal);
+  
 
   double totdiff = (afterTotal.tv_sec * NANOSECONDS_PER_SECOND + afterTotal.tv_nsec) - (beforeTotal.tv_sec * NANOSECONDS_PER_SECOND + beforeTotal.tv_nsec);
   printf("Total time: %10.4f\n",totdiff);
