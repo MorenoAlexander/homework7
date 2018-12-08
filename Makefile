@@ -15,5 +15,8 @@ microbenchmarks: microbenchmarks.c statistics.c statistics.h
 examples: examples.c statistics.c statistics.h
 	gcc -Wall -std=gnu99 -ggdb3 -o examples examples.c statistics.c -lm
 
+runall:
+	./processes ; ./threads ; ./threadpool ; ./microbenchmarks
+
 clean:
 	rm -f processes threads threadpool examples microbenchmarks
